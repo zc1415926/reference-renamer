@@ -1,0 +1,164 @@
+/**
+ * Created by zc1415926 on 2017/5/15.
+ */
+const {app, BrowserWindow, ipcMain, dialog} = require('electron');
+const path = require('path');
+const url = require('url');
+const xlsx = require('node-xlsx');
+const fs = require('fs');
+const shelljs = require('shelljs');
+
+<!-- build:remove -->
+<!-- Connect to server process -->
+const client = require('electron-connect').client;
+<!-- endbuild -->
+
+// Keep a global reference of the window object, if you don't, the window will
+// be closed automatically when the JavaScript object is garbage collected.
+let win;
+let targetDirPath;
+let sourceData;
+
+function createWindow() {
+    // Create the browser window.
+    win = new BrowserWindow({width: 800, height: 600});
+
+    // and load the index.html of the app.
+    win.loadURL(url.format({
+        pathname: path.join(__dirname, 'app', 'index.html'),
+        protocol: 'file:',
+        slashes: true
+    }));
+
+    <!-- build:remove -->
+    <!-- Connect to server process -->
+    client.create(win);
+    // Open the DevTools.
+    win.webContents.openDevTools();
+    <!-- endbuild -->
+
+    // Emitted when the window is closed.
+    win.on('closed', () => {
+        // Dereference the window object, usually you would store windows
+        // in an array if your app supports multi windows, this is the time
+        // when you should delete the corresponding element.
+        win = null
+    });
+}
+
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+app.on('ready', createWindow);
+
+// Quit when all windows are closed.
+app.on('window-all-closed', () => {
+    // On macOS it is common for applications and their menu bar
+    // to stay active until the user quits explicitly with Cmd + Q
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
+});
+
+app.on('activate', () => {
+    // On macOS it's common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    if (win === null) {
+        createWindow();
+    }
+});
+
+// In this file you can include the rest of your app's specific main process
+// code. You can also put them in separate files and require them here.
+ipcMain.on('open-target-dir', function (event) {
+    dialog.showOpenDialog({
+            title: '打开目标文件夹',
+            properties: ['openDirectory']
+        },
+
+        function (dirPaths) {
+            if(!dirPaths){
+                console.log('locate target dir canceled');
+            }
+            else{
+                console.log('target dir: ' + dirPaths);
+                targetDirPath = dirPaths;
+                shelljs.cd(targetDirPath);
+                let fileCount = shelljs.ls('*').length;
+                event.sender.send('target-dir-reply', dirPaths, fileCount);
+            }
+        }
+    );
+});
+
+ipcMain.on('open-excel-path', function (event) {
+    dialog.showOpenDialog({
+            title: '打开参照Excel文件',
+            filters: [{name: '电子表格', extensions: ['xls', 'xlsx']},
+                {name: 'All Files', extensions: ['*']}],
+            properties: ['openFile']
+        },
+        function (filePath) {
+            if(!filePath){
+                console.log('locate excel canceled');
+            }
+            else {
+                console.log('excel file: ' + filePath);
+
+                event.sender.send('excel-path-reply', filePath);
+
+
+
+                sourceData = xlsx.parse(fs.readFileSync(filePath.toString()))[0]['data'];
+                //let sourceDataLength = sourceData.length;
+
+                event.sender.send('source-data-length-reply', sourceData.length);
+                //console.log(sourceData)
+            }
+    });
+});
+
+ipcMain.on('get-col-header', function (event, num) {
+    console.log(sourceData[num-1]);
+    //'col-header-reply'
+    event.sender.send('col-header-reply', sourceData[num-1]);
+});
+
+ipcMain.on('start-to-rename', function (event, sourceColOrder, targetColOrder) {
+    let sourceColNum = sourceColOrder - 1;
+    let targetColNum = targetColOrder - 1;
+    /*console.log(sourceData);
+    console.log(targetDirPath);
+    console.log(sourceColNum);
+    console.log(targetColNum);*/
+    shelljs.cd(targetDirPath);
+    //var fileList = shelljs.ls('*');
+
+    sourceData.forEach((item)=>{
+        //console.log(item[sourceColNum]);
+        var matchedFiles = shelljs.ls('*' + item[sourceColNum] + '.*');
+
+        if(matchedFiles.length == 1){
+            //
+            let oldFileName = matchedFiles.toString();
+            let newFileName = oldFileName.replace(item[sourceColNum], item[targetColNum]);
+
+            /*console.log('oldFileName');
+            console.log(oldFileName);
+            console.log('newFileName');
+            console.log(newFileName);*/
+
+            shelljs.mv(oldFileName, newFileName);
+
+            event.sender.send('start-to-rename-reply',
+                oldFileName+'重命名为：'+newFileName);
+
+        }else if(matchedFiles.length == 0){
+            event.sender.send('start-to-rename-reply', '没有找到含“' + item[sourceColNum] + '”的文件');
+        }
+
+    });
+    //shelljs.ls('*');
+    //'col-header-reply'
+    //event.sender.send('col-header-reply', sourceData[num-1]);
+});
