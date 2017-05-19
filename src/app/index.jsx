@@ -10,16 +10,43 @@ import RaisedButton from 'material-ui/RaisedButton';
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
 import Divider from 'material-ui/Divider';
 import DropDownMenu from 'material-ui/DropDownMenu';
-import MenuItem from 'material-ui/MenuItem';
 import IconMenu from 'material-ui/IconMenu';
 import IconButton from 'material-ui/IconButton';
 
+import Popover from 'material-ui/Popover';
+import Menu from 'material-ui/Menu';
+import MenuItem from 'material-ui/MenuItem';
+import TextField from 'material-ui/TextField';
+import injectTapEventPlugin from 'react-tap-event-plugin';
+injectTapEventPlugin();
+
+import SelectField from 'material-ui/SelectField';
+import {cyan500} from 'material-ui/styles/colors';
 import NavigationExpandMoreIcon from 'material-ui/svg-icons/navigation/expand-more';
 import FontIcon from 'material-ui/FontIcon';
 
 const electron = window.require('electron');
 const {ipcRenderer} = electron;
+const muiTheme = getMuiTheme({
+    palette: {
+        accent1Color: cyan500,
+    },
+});
+const styles = {
+    container: {
+        textAlign: 'center',
+        paddingTop: 200,
+    },
+};
+const standardActions = (
+    <FlatButton
+        label="Ok"
+        primary={true}
+        onTouchTap={()=>{this.handleRequestClose()}}
+    />
+);
 
+import FlatButton from 'material-ui/FlatButton';
 class App extends React.Component {
 
     constructor() {
@@ -29,13 +56,19 @@ class App extends React.Component {
             fileCount: '',
             excelPath: '',
             sourceDataLength: '',
-            colHeaderNum: '',
+            colHeaderRowNum: '',
             colHeader: [],
-            sourceColOrder: '',
-            targetColOrder: '',
+            sourceColNum: '',
+            targetColNum: '',
             info: '',
 
             value: 1,
+
+            isSourceHeaderMenuOpen: false,
+            isTargetHeaderMenuOpen: false,
+            dpValue: 0,
+            //sourceHeaderText: "请选择原文件名列",
+            //targetHeaderText: "请选择目标文件名列",
         }
     }
 
@@ -74,8 +107,8 @@ class App extends React.Component {
         ipcRenderer.send('open-excel-path');
     }
 
-    inputColHeaderNumChanged(e){
-        this.setState({colHeaderNum: e.target.value});
+    inputColHeaderRowNumChanged(e){
+        this.setState({colHeaderRowNum: e.target.value});
         ipcRenderer.send('get-col-header', e.target.value);
     }
 
@@ -86,41 +119,10 @@ class App extends React.Component {
         );
     }
 
-    createList() {
-
-        if(this.state.colHeader == []){
-            return;
-        }else{
-            let list = '';
-            let order = 0;
-            //console.log(this.state.colHeader);
-            this.state.colHeader.forEach((item)=>{
-                //console.log(item)
-                list += '<li key={'+order+'}>'+item+'</li>';
-                //console.log(list);
-                order++;
-            });
-
-            //能不能直接进行jsx拼接
-            return <div dangerouslySetInnerHTML={{__html: list}} />;
-
-        }
-    }
-
-    inputSourceColOrderChanged(e){
-        this.setState({sourceColOrder: e.target.value});
-        console.log(e.target.value);
-    }
-
-    inputTargetColOrderChanged(e){
-        this.setState({targetColOrder: e.target.value});
-        console.log(e.target.value);
-    }
-
     btnRenameClicked(){
         //检查数据输完没有
         //
-        ipcRenderer.send('start-to-rename', this.state.sourceColOrder, this.state.targetColOrder);
+        ipcRenderer.send('start-to-rename', this.state.sourceColNum, this.state.targetColNum);
     }
     handleChange (event, index, value){
         this.setState({value});
@@ -130,14 +132,80 @@ class App extends React.Component {
             openMenu: true,
         });
     }
+    handleRequestClose(){
+        this.setState({
+            open: false,
+        });
+    }
+
+    handleTouchTap(){
+        this.setState({
+            open: true,
+        });
+    }
+
+    handleSourceHeaderMenu(event, isOpen){
+        if(isOpen){
+            event.preventDefault();
+            this.setState({
+                isSourceHeaderMenuOpen: isOpen,
+                anchorEl: event.currentTarget,
+            });
+        }else {
+            this.setState({
+                isSourceHeaderMenuOpen: isOpen,
+            });
+        }
+    }
+    handleTargetHeaderMenu(event, isOpen){
+        if(isOpen){
+            event.preventDefault();
+            this.setState({
+                isTargetHeaderMenuOpen: isOpen,
+                anchorEl: event.currentTarget,
+            });
+        }else {
+            this.setState({
+                isTargetHeaderMenuOpen: isOpen,
+            });
+        }
+    }
+
+    createSourceRow(item, index){
+
+        return(<MenuItem key={index} value={index} primaryText={index+1 +'. '+item}/>);
+    }
+    createTargetRow(item, index){
+
+        return(<MenuItem key={index} value={index} primaryText={index+1 +'. '+item}/>);
+    }
+
+
+    sourceHeaderMenuChanged(e, key){
+        console.log('source column number:');
+        console.log(key);
+
+        this.setState({
+            sourceColNum: key,
+            sourceHeaderText: this.state.colHeader[key]});
+    }
+    targetHeaderMenuChanged(e, key){
+        console.log('target column number:');
+        console.log(key);
+
+        this.setState({
+            targetColNum: key,
+            targetHeaderText: this.state.colHeader[key]});
+    }
+
     render() {
 
         return (
             <div>
-                <MuiThemeProvider muiTheme={getMuiTheme()}>
-                    <AppBar title="Hello, Material-UI!" />
+                <MuiThemeProvider muiTheme={muiTheme}>
+                    <AppBar title="参照批量重命名程序" />
                 </MuiThemeProvider>
-                <MuiThemeProvider muiTheme={getMuiTheme()}>
+                <MuiThemeProvider muiTheme={muiTheme}>
                     <Toolbar>
                         <ToolbarGroup>
                             <RaisedButton label="选择目标文件夹" onClick={() => {this.btnTargetDirClicked()}}/>
@@ -147,10 +215,10 @@ class App extends React.Component {
                         </ToolbarGroup>
                     </Toolbar>
                 </MuiThemeProvider>
-                <MuiThemeProvider muiTheme={getMuiTheme()}>
+                <MuiThemeProvider muiTheme={muiTheme}>
                     <Divider />
                 </MuiThemeProvider>
-                <MuiThemeProvider muiTheme={getMuiTheme()}>
+                <MuiThemeProvider muiTheme={muiTheme}>
                     <Toolbar>
                         <ToolbarGroup>
                             <RaisedButton label="选择Excel文件" onClick={() => {this.btnExcelPathClicked()}}/>
@@ -166,64 +234,78 @@ class App extends React.Component {
                 <MuiThemeProvider muiTheme={getMuiTheme()}>
                     <Toolbar>
                         <ToolbarGroup firstChild={true}>
-                            <DropDownMenu value={this.state.value} onChange={this.handleChange}>
-                                <MenuItem value={1} primaryText="All Broadcasts" />
-                                <MenuItem value={2} primaryText="All Voice" />
-                                <MenuItem value={3} primaryText="All Text" />
-                                <MenuItem value={4} primaryText="Complete Voice" />
-                                <MenuItem value={5} primaryText="Complete Text" />
-                                <MenuItem value={6} primaryText="Active Voice" />
-                                <MenuItem value={7} primaryText="Active Text" />
-                            </DropDownMenu>
+                            <TextField
+                                hintText="列标题在第几行？"
+                                onChange={(e)=>{this.inputColHeaderRowNumChanged(e)}}
+                            />
+
+                            <ToolbarSeparator />
+
+                        </ToolbarGroup>
+                    </Toolbar>
+                </MuiThemeProvider>
+                <MuiThemeProvider muiTheme={muiTheme}>
+                <Toolbar>
+                    <ToolbarGroup>
+                        <RaisedButton
+                            onTouchTap={(e)=>{this.handleSourceHeaderMenu(e, true)}}
+                            label="请选择原文件名列"
+                        />
+                        <Popover
+                            open={this.state.isSourceHeaderMenuOpen}
+                            anchorEl={this.state.anchorEl}
+                            anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+                            targetOrigin={{horizontal: 'left', vertical: 'top'}}
+                            onRequestClose={(e)=>{this.handleSourceHeaderMenu(e, false)}}
+                        >
+                            <Menu onChange={(e, key)=>{this.sourceHeaderMenuChanged(e, key)}}>
+                                {this.state.colHeader.map(this.createSourceRow, this)}
+                            </Menu>
+                        </Popover>
+                    </ToolbarGroup>
+                    <ToolbarGroup>
+                        <ToolbarTitle text={this.state.sourceHeaderText}/>
+                    </ToolbarGroup>
+                </Toolbar>
+            </MuiThemeProvider>
+                <MuiThemeProvider muiTheme={muiTheme}>
+                    <Toolbar>
+                        <ToolbarGroup>
+                            <RaisedButton
+                                onTouchTap={(e)=>{this.handleTargetHeaderMenu(e, true)}}
+                                label="请选择目标文件名列"
+                            />
+                            <Popover
+                                open={this.state.isTargetHeaderMenuOpen}
+                                anchorEl={this.state.anchorEl}
+                                anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+                                targetOrigin={{horizontal: 'left', vertical: 'top'}}
+                                onRequestClose={(e)=>{this.handleTargetHeaderMenu(e, false)}}
+                            >
+                                <Menu onChange={(e, key)=>{this.targetHeaderMenuChanged(e, key)}}>
+                                    {this.state.colHeader.map(this.createTargetRow, this)}
+                                </Menu>
+                            </Popover>
                         </ToolbarGroup>
                         <ToolbarGroup>
-                            <ToolbarTitle text="Options" />
-                            <FontIcon className="muidocs-icon-custom-sort" />
-                            <ToolbarSeparator />
-                            <RaisedButton label="Create Broadcast" primary={true} />
-                            <IconMenu
-                                iconButtonElement={
-                                    <IconButton touch={true}>
-                                        <NavigationExpandMoreIcon />
-                                    </IconButton>
-                                }
-                            >
-                                <MenuItem primaryText="Download" />
-                                <MenuItem primaryText="More Info" />
-                            </IconMenu>
+                            <ToolbarTitle text={this.state.targetHeaderText}/>
+                        </ToolbarGroup>
+                    </Toolbar>
+                </MuiThemeProvider>
+                <MuiThemeProvider muiTheme={muiTheme}>
+                    <Toolbar>
+                        <ToolbarGroup>
+                            <RaisedButton label="开始" onClick={()=>{this.btnRenameClicked()}}/>
+                        </ToolbarGroup>
+                        <ToolbarGroup>
+                            <ToolbarTitle text=''/>
                         </ToolbarGroup>
                     </Toolbar>
                 </MuiThemeProvider>
 
-                <div><h1>Reference Renamer</h1></div>
-                <div>
-                    <button onClick={() => {this.btnTargetDirClicked()}}>打开文件夹</button>
-                    <label>{this.state.targetDir}</label>
-                    <label>共有{this.state.fileCount}个文件或文件夹</label>
-                </div>
-                <div>
-                    <button onClick={() => {this.btnExcelPathClicked()}}>打开Excel文件</button>
-                    <label>{this.state.excelPath}</label>
-                </div>
-                <div>
-                    <label>列标题在第几行？（0 到 {this.state.sourceDataLength}）</label>
-                    <input onChange={(e)=>{this.inputColHeaderNumChanged(e)}}/>
-                </div>
-                <div>
-                    <ol>{this.createList()}</ol>
-                </div>
-                <div>
-                    <label>原文件名列数</label>
-                    <input type="text" onChange={(e)=>{this.inputSourceColOrderChanged(e)}}/>
-                    <label>目标文件名列数</label>
-                    <input type="text" onChange={(e)=>{this.inputTargetColOrderChanged(e)}}/>
-                </div>
-                <div>
-                    <button onClick={()=>{this.btnRenameClicked()}}>开始转换</button>
-                </div>
-                <div>
-                    <textarea value={this.state.info}></textarea>
-                </div>
+                <MuiThemeProvider muiTheme={muiTheme}>
+                    <TextField value={this.state.info} fullWidth={true} multiLine={true} rows={4} rowsMax={4}/>
+                </MuiThemeProvider>
             </div>
         );
     }

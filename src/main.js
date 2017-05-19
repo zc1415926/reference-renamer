@@ -124,15 +124,9 @@ ipcMain.on('get-col-header', function (event, num) {
     event.sender.send('col-header-reply', sourceData[num-1]);
 });
 
-ipcMain.on('start-to-rename', function (event, sourceColOrder, targetColOrder) {
-    let sourceColNum = sourceColOrder - 1;
-    let targetColNum = targetColOrder - 1;
-    /*console.log(sourceData);
-    console.log(targetDirPath);
-    console.log(sourceColNum);
-    console.log(targetColNum);*/
+ipcMain.on('start-to-rename', function (event, sourceColNum, targetColNum) {
+
     shelljs.cd(targetDirPath);
-    //var fileList = shelljs.ls('*');
 
     sourceData.forEach((item)=>{
         //console.log(item[sourceColNum]);
@@ -143,18 +137,14 @@ ipcMain.on('start-to-rename', function (event, sourceColOrder, targetColOrder) {
             let oldFileName = matchedFiles.toString();
             let newFileName = oldFileName.replace(item[sourceColNum], item[targetColNum]);
 
-            /*console.log('oldFileName');
-            console.log(oldFileName);
-            console.log('newFileName');
-            console.log(newFileName);*/
 
             shelljs.mv(oldFileName, newFileName);
 
             event.sender.send('start-to-rename-reply',
-                oldFileName+'重命名为：'+newFileName);
+                '“'+oldFileName+'” 重命名为 “'+newFileName+'”');
 
         }else if(matchedFiles.length == 0){
-            event.sender.send('start-to-rename-reply', '没有找到含“' + item[sourceColNum] + '”的文件');
+            event.sender.send('start-to-rename-reply', '没有找到文件名包含“' + item[sourceColNum] + '”的文件');
         }
 
     });
