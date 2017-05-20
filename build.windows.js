@@ -37,26 +37,33 @@ function installMainProcessDependencies() {
     let deferred = Q.defer();
     let installText = 'npm install';
 
-    console.log(packageJson.mainProcessDependenies);
-    lodash.mapKeys(packageJson.mainProcessDependenies, function (value, key) {
-        installText += ' ' + key + '@' + value;
+    if(lodash.has(packageJson, 'mainProcessDependenies')){
+        lodash.mapKeys(packageJson.mainProcessDependenies, function (value, key) {
+            installText += ' ' + key + '@' + value;
 
-    });
+        });
 
-    shelljs.cd('build');
+        shelljs.cd('build');
 
-    shelljs.exec(installText, function (code, stdout, stderr) {
+        shelljs.exec(installText, function (code, stdout, stderr) {
 
-        if (code == 0) {
-            console.log('code');
-            console.log(code);
-            deferred.resolve();
-        }
-    });
+            if (code == 0) {
+                console.log('code');
+                console.log(code);
+                deferred.resolve();
+            }
+        });
 
-    shelljs.cd('..');
+        shelljs.cd('..');
 
-    return deferred.promise;
+        return deferred.promise;
+    }else{
+        gulpUtil.log(gulpUtil.colors.red('mainProcessDependenies') + ' field not find in pakcage.json. ' +
+            'Please add ' + gulpUtil.colors.red('mainProcessDependenies') +
+            ' field just like ' +gulpUtil.colors.red('dependencies') +
+            ', if your main process has some 3rd party dependencies.');
+    }
+
 }
 
 function createAsar() {
