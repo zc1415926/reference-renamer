@@ -17,9 +17,9 @@ let appDir;
 
 function init() {
     projectDir = jetpack;
-    releaseDir = projectDir.dir('./release', {empty: true});
     appDir = projectDir.dir('./build');
     manifest = appDir.read('./package.json', 'json');
+    releaseDir = projectDir.dir('./'+manifest.releaseName+' --release', {empty: true});
     return Q();
 }
 
