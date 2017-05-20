@@ -23,12 +23,13 @@
     "electron-connect": "^0.6.1",
     "fs-jetpack": "^1.0.0",
     "gulp": "^3.9.1",
+    "gulp-confirm": "^1.0.6",
     "gulp-useref": "^3.1.2",
     "gulp-util": "^3.0.8",
     "gulp-webpack": "^1.5.0",
+    "lodash": "^4.17.4",
     "q": "^1.5.0",
     "rcedit": "^0.9.0",
-    "shelljs": "^0.7.7",
     "webpack": "^2.5.1"
   },
   "dependencies": {
@@ -36,6 +37,11 @@
     "node-xlsx": "^0.7.4",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
-    "react-tap-event-plugin": "^2.0.1"
+    "react-tap-event-plugin": "^2.0.1",
+    "shelljs": "^0.7.7"
+  },
+  "mainProcessDependenies": {
+    "node-xlsx": "^0.7.4",
+    "shelljs": "^0.7.7"
   }
 }

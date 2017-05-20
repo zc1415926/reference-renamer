@@ -6,6 +6,9 @@ let Q = require('q');
 let asar = require('asar');
 let gulpUtil = require('gulp-util');
 let jetpack = require('fs-jetpack');
+let shelljs = require('shelljs');
+let packageJson = require('./package.json');
+let lodash = require('lodash');
 
 let releaseDir;
 let projectDir;
@@ -27,6 +30,33 @@ function copyElectron() {
 
 function cleanupRuntime() {
     return releaseDir.removeAsync('resources/default_app.asar');
+}
+
+function installMainProcessDependencies() {
+
+    let deferred = Q.defer();
+    let installText = 'npm install';
+
+    console.log(packageJson.mainProcessDependenies);
+    lodash.mapKeys(packageJson.mainProcessDependenies, function (value, key) {
+        installText += ' ' + key + '@' + value;
+
+    });
+
+    shelljs.cd('build');
+
+    shelljs.exec(installText, function (code, stdout, stderr) {
+
+        if (code == 0) {
+            console.log('code');
+            console.log(code);
+            deferred.resolve();
+        }
+    });
+
+    shelljs.cd('..');
+
+    return deferred.promise;
 }
 
 function createAsar() {
@@ -66,6 +96,7 @@ function build() {
     return init()
         .then(copyElectron)
         .then(cleanupRuntime)
+        .then(installMainProcessDependencies)
         .then(createAsar)
         .then(updateResources)
         .then(rename);
