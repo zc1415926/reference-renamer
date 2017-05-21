@@ -25,6 +25,11 @@ import {cyan500} from 'material-ui/styles/colors';
 import NavigationExpandMoreIcon from 'material-ui/svg-icons/navigation/expand-more';
 import FontIcon from 'material-ui/FontIcon';
 
+import FloatingActionButton from 'material-ui/FloatingActionButton';
+import IconAdd from 'material-ui/svg-icons/content/add';
+import IconRemove from 'material-ui/svg-icons/content/remove';
+
+
 const electron = window.require('electron');
 const {ipcRenderer} = electron;
 const muiTheme = getMuiTheme({
@@ -37,12 +42,21 @@ const styles = {
         textAlign: 'center',
         paddingTop: 200,
     },
+    btnHeaderRowNum: {
+        marginLeft: 20,
+        marginRight: 20,
+    },
+    textHeaderRowNum: {
+        width: 120,
+    },
 };
 const standardActions = (
     <FlatButton
         label="Ok"
         primary={true}
-        onTouchTap={()=>{this.handleRequestClose()}}
+        onTouchTap={() => {
+            this.handleRequestClose()
+        }}
     />
 );
 
@@ -56,7 +70,7 @@ class App extends React.Component {
             fileCount: '',
             excelPath: '',
             sourceDataLength: '',
-            colHeaderRowNum: '',
+            colHeaderRowNum: 1,
             colHeader: [],
             sourceColNum: '',
             targetColNum: '',
@@ -81,20 +95,23 @@ class App extends React.Component {
             }
         );
         ipcRenderer.on('excel-path-reply', (event, filePath) => {
-                this.setState({excelPath: filePath});
-            }
-        );
+            this.setState({excelPath: filePath});
+
+            //deafualt header row number
+            ipcRenderer.send('get-col-header', this.state.colHeaderRowNum);
+        });
+
         ipcRenderer.on('source-data-length-reply', (event, dataLength) => {
             this.setState({sourceDataLength: dataLength});
-            }
-        );
+        });
+
         ipcRenderer.on('col-header-reply', (event, colHeader) => {
-            this.setState({colHeader: colHeader});
+                this.setState({colHeader: colHeader});
             }
         );
         ipcRenderer.on('start-to-rename-reply', (event, info) => {
-            this.state.info += info + '\n';
-            this.setState({info: this.state.info});
+                this.state.info += info + '\n';
+                this.setState({info: this.state.info});
             }
         );
     }
@@ -107,95 +124,121 @@ class App extends React.Component {
         ipcRenderer.send('open-excel-path');
     }
 
-    inputColHeaderRowNumChanged(e){
+    inputColHeaderRowNumChanged(e) {
         this.setState({colHeaderRowNum: e.target.value});
         ipcRenderer.send('get-col-header', e.target.value);
     }
 
-    createListRow(colHeaderItem){
+    createListRow(colHeaderItem) {
         //let order = 0;
         return (
             <li>{colHeaderItem}</li>
         );
     }
 
-    btnRenameClicked(){
+    btnRenameClicked() {
         //检查数据输完没有
         //
         ipcRenderer.send('start-to-rename', this.state.sourceColNum, this.state.targetColNum);
     }
-    handleChange (event, index, value){
+
+    handleChange(event, index, value) {
         this.setState({value});
     }
-    handleOpenMenu(){
+
+    handleOpenMenu() {
         this.setState({
             openMenu: true,
         });
     }
-    handleRequestClose(){
+
+    handleRequestClose() {
         this.setState({
             open: false,
         });
     }
 
-    handleTouchTap(){
+    handleTouchTap() {
         this.setState({
             open: true,
         });
     }
 
-    handleSourceHeaderMenu(event, isOpen){
-        if(isOpen){
+    handleSourceHeaderMenu(event, isOpen) {
+        if (isOpen) {
             event.preventDefault();
             this.setState({
                 isSourceHeaderMenuOpen: isOpen,
                 anchorEl: event.currentTarget,
             });
-        }else {
+        } else {
             this.setState({
                 isSourceHeaderMenuOpen: isOpen,
             });
         }
     }
-    handleTargetHeaderMenu(event, isOpen){
-        if(isOpen){
+
+    handleTargetHeaderMenu(event, isOpen) {
+        if (isOpen) {
             event.preventDefault();
             this.setState({
                 isTargetHeaderMenuOpen: isOpen,
                 anchorEl: event.currentTarget,
             });
-        }else {
+        } else {
             this.setState({
                 isTargetHeaderMenuOpen: isOpen,
             });
         }
     }
 
-    createSourceRow(item, index){
+    createSourceRow(item, index) {
 
-        return(<MenuItem key={index} value={index} primaryText={index+1 +'. '+item}/>);
-    }
-    createTargetRow(item, index){
-
-        return(<MenuItem key={index} value={index} primaryText={index+1 +'. '+item}/>);
+        return (<MenuItem key={index} value={index} primaryText={index + 1 + '. ' + item}/>);
     }
 
+    createTargetRow(item, index) {
 
-    sourceHeaderMenuChanged(e, key){
+        return (<MenuItem key={index} value={index} primaryText={index + 1 + '. ' + item}/>);
+    }
+
+
+    sourceHeaderMenuChanged(e, key) {
         console.log('source column number:');
         console.log(key);
 
         this.setState({
             sourceColNum: key,
-            sourceHeaderText: this.state.colHeader[key]});
+            sourceHeaderText: this.state.colHeader[key]
+        });
     }
-    targetHeaderMenuChanged(e, key){
+
+    targetHeaderMenuChanged(e, key) {
         console.log('target column number:');
         console.log(key);
 
         this.setState({
             targetColNum: key,
-            targetHeaderText: this.state.colHeader[key]});
+            targetHeaderText: this.state.colHeader[key]
+        });
+    }
+
+    isBtnHeaderRowNumDisabled(btnType){
+        return true;
+        console.log('btnType');
+        console.log(btnType);
+        if(btnType == 'add'){
+            if(this.state.colHeaderRowNum == 1){
+
+                console.log('this.state.colHeaderRowNum');
+                console.log(this.state.colHeaderRowNum);
+                return true;
+            }
+        }else{
+            if(this.state.colHeaderRowNum == this.state.sourceDataLength+1){
+                return true;
+            }
+        }
     }
 
     render() {
@@ -203,12 +246,14 @@ class App extends React.Component {
         return (
             <div>
                 <MuiThemeProvider muiTheme={muiTheme}>
-                    <AppBar title="参照批量重命名程序" />
+                    <AppBar title="参照批量重命名程序"/>
                 </MuiThemeProvider>
                 <MuiThemeProvider muiTheme={muiTheme}>
                     <Toolbar>
                         <ToolbarGroup>
-                            <RaisedButton label="选择目标文件夹" onClick={() => {this.btnTargetDirClicked()}}/>
+                            <RaisedButton label="选择目标文件夹" onClick={() => {
+                                this.btnTargetDirClicked()
+                            }}/>
                         </ToolbarGroup>
                         <ToolbarGroup>
                             <ToolbarTitle text={this.state.targetDir}/>
@@ -221,7 +266,9 @@ class App extends React.Component {
                 <MuiThemeProvider muiTheme={muiTheme}>
                     <Toolbar>
                         <ToolbarGroup>
-                            <RaisedButton label="选择Excel文件" onClick={() => {this.btnExcelPathClicked()}}/>
+                            <RaisedButton label="选择Excel文件" onClick={() => {
+                                this.btnExcelPathClicked()
+                            }}/>
                         </ToolbarGroup>
                         <ToolbarGroup>
                             <ToolbarTitle text={this.state.excelPath}/>
@@ -233,46 +280,66 @@ class App extends React.Component {
                 </MuiThemeProvider>
                 <MuiThemeProvider muiTheme={getMuiTheme()}>
                     <Toolbar>
-                        <ToolbarGroup firstChild={true}>
-                            <TextField
-                                hintText="列标题在第几行？"
-                                onChange={(e)=>{this.inputColHeaderRowNumChanged(e)}}
+                        <ToolbarGroup>
+
+                            <FloatingActionButton mini={true} style={styles.btnHeaderRowNum}
+                                                  disabled={this.isBtnHeaderRowNumDisabled('add')}>
+                                <IconAdd />
+                            </FloatingActionButton>
+
+                            <TextField defaultValue="1" floatingLabelText="列标题在第几行"
+                                       style={styles.textHeaderRowNum}
+                                       onChange={(e) => {
+                                           this.inputColHeaderRowNumChanged(e)
+                                       }}
                             />
 
-                            <ToolbarSeparator />
+                            <FloatingActionButton mini={true}>
+                                <IconRemove />
+                            </FloatingActionButton>
 
+
+                            <ToolbarTitle text=""/>
                         </ToolbarGroup>
                     </Toolbar>
                 </MuiThemeProvider>
                 <MuiThemeProvider muiTheme={muiTheme}>
-                <Toolbar>
-                    <ToolbarGroup>
-                        <RaisedButton
-                            onTouchTap={(e)=>{this.handleSourceHeaderMenu(e, true)}}
-                            label="请选择原文件名列"
-                        />
-                        <Popover
-                            open={this.state.isSourceHeaderMenuOpen}
-                            anchorEl={this.state.anchorEl}
-                            anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
-                            targetOrigin={{horizontal: 'left', vertical: 'top'}}
-                            onRequestClose={(e)=>{this.handleSourceHeaderMenu(e, false)}}
-                        >
-                            <Menu onChange={(e, key)=>{this.sourceHeaderMenuChanged(e, key)}}>
-                                {this.state.colHeader.map(this.createSourceRow, this)}
-                            </Menu>
-                        </Popover>
-                    </ToolbarGroup>
-                    <ToolbarGroup>
-                        <ToolbarTitle text={this.state.sourceHeaderText}/>
-                    </ToolbarGroup>
-                </Toolbar>
-            </MuiThemeProvider>
+                    <Toolbar>
+                        <ToolbarGroup>
+                            <RaisedButton
+                                onTouchTap={(e) => {
+                                    this.handleSourceHeaderMenu(e, true)
+                                }}
+                                label="请选择原文件名列"
+                            />
+                            <Popover
+                                open={this.state.isSourceHeaderMenuOpen}
+                                anchorEl={this.state.anchorEl}
+                                anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+                                targetOrigin={{horizontal: 'left', vertical: 'top'}}
+                                onRequestClose={(e) => {
+                                    this.handleSourceHeaderMenu(e, false)
+                                }}
+                            >
+                                <Menu onChange={(e, key) => {
+                                    this.sourceHeaderMenuChanged(e, key)
+                                }}>
+                                    {this.state.colHeader.map(this.createSourceRow, this)}
+                                </Menu>
+                            </Popover>
+                        </ToolbarGroup>
+                        <ToolbarGroup>
+                            <ToolbarTitle text={this.state.sourceHeaderText}/>
+                        </ToolbarGroup>
+                    </Toolbar>
+                </MuiThemeProvider>
                 <MuiThemeProvider muiTheme={muiTheme}>
                     <Toolbar>
                         <ToolbarGroup>
                             <RaisedButton
-                                onTouchTap={(e)=>{this.handleTargetHeaderMenu(e, true)}}
+                                onTouchTap={(e) => {
+                                    this.handleTargetHeaderMenu(e, true)
+                                }}
                                 label="请选择目标文件名列"
                             />
                             <Popover
@@ -280,9 +347,13 @@ class App extends React.Component {
                                 anchorEl={this.state.anchorEl}
                                 anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
                                 targetOrigin={{horizontal: 'left', vertical: 'top'}}
-                                onRequestClose={(e)=>{this.handleTargetHeaderMenu(e, false)}}
+                                onRequestClose={(e) => {
+                                    this.handleTargetHeaderMenu(e, false)
+                                }}
                             >
-                                <Menu onChange={(e, key)=>{this.targetHeaderMenuChanged(e, key)}}>
+                                <Menu onChange={(e, key) => {
+                                    this.targetHeaderMenuChanged(e, key)
+                                }}>
                                     {this.state.colHeader.map(this.createTargetRow, this)}
                                 </Menu>
                             </Popover>
@@ -295,7 +366,9 @@ class App extends React.Component {
                 <MuiThemeProvider muiTheme={muiTheme}>
                     <Toolbar>
                         <ToolbarGroup>
-                            <RaisedButton label="开始" onClick={()=>{this.btnRenameClicked()}}/>
+                            <RaisedButton label="开始" onClick={() => {
+                                this.btnRenameClicked()
+                            }}/>
                         </ToolbarGroup>
                         <ToolbarGroup>
                             <ToolbarTitle text=''/>
