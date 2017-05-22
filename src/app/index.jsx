@@ -18,6 +18,8 @@ import MenuItem from 'material-ui/MenuItem';
 import TextField from 'material-ui/TextField';
 import {cyan500} from 'material-ui/styles/colors';
 import Dialog from 'material-ui/Dialog';
+import IconButton from 'material-ui/IconButton';
+import NavigationClose from 'material-ui/svg-icons/navigation/close';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 injectTapEventPlugin();
 
@@ -39,6 +41,12 @@ const styles = {
     },
     textHeaderRowNum: {
         width: 120,
+    },
+    titleBarDrag: {
+        '-webkit-app-region': 'drag',
+    },
+    noDrag: {
+        '-webkit-app-region': 'no-drag',
     },
 };
 
@@ -267,8 +275,11 @@ class App extends React.Component {
         return (
             <div>
                 <MuiThemeProvider muiTheme={muiTheme}>
-                    <AppBar title="参照批量重命名程序"/>
+                    <AppBar title="参照批量重命名程序" style={styles.titleBarDrag}
+                            showMenuIconButton={false}
+                            iconElementRight={<IconButton style={styles.noDrag}><NavigationClose /></IconButton>}/>
                 </MuiThemeProvider>
+
                 <MuiThemeProvider muiTheme={muiTheme}>
                     <Toolbar>
                         <ToolbarGroup>
