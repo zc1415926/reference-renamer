@@ -31,6 +31,8 @@ function createWindow() {
         slashes: true
     }));
 
+    win.setMenu(null);
+
     <!-- build:remove -->
     <!-- Connect to server process -->
     client.create(win);
