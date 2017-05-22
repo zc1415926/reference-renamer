@@ -9,26 +9,16 @@ import AppBar from 'material-ui/AppBar';
 import RaisedButton from 'material-ui/RaisedButton';
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
 import Divider from 'material-ui/Divider';
-import DropDownMenu from 'material-ui/DropDownMenu';
-import IconMenu from 'material-ui/IconMenu';
-import IconButton from 'material-ui/IconButton';
-
+import FloatingActionButton from 'material-ui/FloatingActionButton';
+import IconAdd from 'material-ui/svg-icons/content/add';
+import IconRemove from 'material-ui/svg-icons/content/remove';
 import Popover from 'material-ui/Popover';
 import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import TextField from 'material-ui/TextField';
+import {cyan500} from 'material-ui/styles/colors';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 injectTapEventPlugin();
-
-import SelectField from 'material-ui/SelectField';
-import {cyan500} from 'material-ui/styles/colors';
-import NavigationExpandMoreIcon from 'material-ui/svg-icons/navigation/expand-more';
-import FontIcon from 'material-ui/FontIcon';
-
-import FloatingActionButton from 'material-ui/FloatingActionButton';
-import IconAdd from 'material-ui/svg-icons/content/add';
-import IconRemove from 'material-ui/svg-icons/content/remove';
-
 
 const electron = window.require('electron');
 const {ipcRenderer} = electron;
