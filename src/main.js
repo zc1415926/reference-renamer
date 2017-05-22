@@ -105,15 +105,9 @@ ipcMain.on('open-excel-path', function (event) {
             else {
                 console.log('excel file: ' + filePath);
 
-                event.sender.send('excel-path-reply', filePath);
-
-
-
                 sourceData = xlsx.parse(fs.readFileSync(filePath.toString()))[0]['data'];
-                //let sourceDataLength = sourceData.length;
 
-                event.sender.send('source-data-length-reply', sourceData.length);
-                //console.log(sourceData)
+                event.sender.send('excel-path-reply', filePath, sourceData.length);
             }
     });
 });

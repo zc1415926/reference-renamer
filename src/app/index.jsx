@@ -60,7 +60,7 @@ class App extends React.Component {
             fileCount: '',
             excelPath: '',
             sourceDataLength: '',
-            colHeaderRowNum: 1,
+            colHeaderRowNum: 0,
             colHeader: [],
             sourceColNum: '',
             targetColNum: '',
@@ -84,21 +84,35 @@ class App extends React.Component {
                 });
             }
         );
-        ipcRenderer.on('excel-path-reply', (event, filePath) => {
-            this.setState({excelPath: filePath});
+        ipcRenderer.on('excel-path-reply', (event, filePath, sourceDataLength) => {
+            this.setState({
+                excelPath: filePath,
+                sourceDataLength: sourceDataLength
+            });
+
+            if (sourceDataLength >= 1) {
+                this.setState({colHeaderRowNum: 1});
+            } else {
+
+            }
 
             //deafualt header row number
             ipcRenderer.send('get-col-header', this.state.colHeaderRowNum);
         });
 
-        ipcRenderer.on('source-data-length-reply', (event, dataLength) => {
-            this.setState({sourceDataLength: dataLength});
-        });
+        // ipcRenderer.on('source-data-length-reply', (event, dataLength) => {
+        //     this.setState({sourceDataLength: dataLength});
+        // });
 
         ipcRenderer.on('col-header-reply', (event, colHeader) => {
-                this.setState({colHeader: colHeader});
+            console.log('colHeader');
+            console.log(colHeader);
+            if(colHeader == null){
+                colHeader = [];
             }
-        );
+            this.setState({colHeader: colHeader});
+        });
+
         ipcRenderer.on('start-to-rename-reply', (event, info) => {
                 this.state.info += info + '\n';
                 this.setState({info: this.state.info});
@@ -213,21 +227,32 @@ class App extends React.Component {
         });
     }
 
-    isBtnHeaderRowNumDisabled(btnType){
-        return true;
-        console.log('btnType');
-        console.log(btnType);
-        if(btnType == 'add'){
-            if(this.state.colHeaderRowNum == 1){
+    isBtnHeaderRowNumDisabled(btnType) {
+
+        if (btnType == 'add') {
+            if (this.state.colHeaderRowNum == this.state.sourceDataLength) {
 
                 console.log('this.state.colHeaderRowNum');
                 console.log(this.state.colHeaderRowNum);
                 return true;
             }
-        }else{
-            if(this.state.colHeaderRowNum == this.state.sourceDataLength+1){
+        } else if (btnType == 'remove') {
+            if (this.state.colHeaderRowNum == 0) {
                 return true;
             }
+        }
+    }
+
+    btnHeaderRowNumBtnClicked(btnType) {
+
+        if (btnType == 'add') {
+            this.setState({colHeaderRowNum: this.state.colHeaderRowNum + 1});
+
+            ipcRenderer.send('get-col-header', this.state.colHeaderRowNum + 1);
+        } else if (btnType == 'remove') {
+            this.setState({colHeaderRowNum: this.state.colHeaderRowNum - 1});
+
+            ipcRenderer.send('get-col-header', this.state.colHeaderRowNum - 1);
         }
     }
 
@@ -273,18 +298,25 @@ class App extends React.Component {
                         <ToolbarGroup>
 
                             <FloatingActionButton mini={true} style={styles.btnHeaderRowNum}
-                                                  disabled={this.isBtnHeaderRowNumDisabled('add')}>
+                                                  disabled={this.isBtnHeaderRowNumDisabled('add')}
+                                                  onTouchTap={() => {
+                                                      this.btnHeaderRowNumBtnClicked('add')
+                                                  }}>
                                 <IconAdd />
                             </FloatingActionButton>
 
-                            <TextField defaultValue="1" floatingLabelText="列标题在第几行"
+                            <TextField value={this.state.colHeaderRowNum} floatingLabelText="列标题在第几行"
                                        style={styles.textHeaderRowNum}
                                        onChange={(e) => {
                                            this.inputColHeaderRowNumChanged(e)
                                        }}
                             />
 
-                            <FloatingActionButton mini={true}>
+                            <FloatingActionButton mini={true}
+                                                  disabled={this.isBtnHeaderRowNumDisabled('remove')}
+                                                  onTouchTap={() => {
+                                                      this.btnHeaderRowNumBtnClicked('remove')
+                                                  }}>
                                 <IconRemove />
                             </FloatingActionButton>
 
