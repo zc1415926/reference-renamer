@@ -17,6 +17,7 @@ import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import TextField from 'material-ui/TextField';
 import {cyan500} from 'material-ui/styles/colors';
+import Dialog from 'material-ui/Dialog';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 injectTapEventPlugin();
 
@@ -40,15 +41,6 @@ const styles = {
         width: 120,
     },
 };
-const standardActions = (
-    <FlatButton
-        label="Ok"
-        primary={true}
-        onTouchTap={() => {
-            this.handleRequestClose()
-        }}
-    />
-);
 
 import FlatButton from 'material-ui/FlatButton';
 class App extends React.Component {
@@ -62,8 +54,8 @@ class App extends React.Component {
             sourceDataLength: '',
             colHeaderRowNum: 0,
             colHeader: [],
-            sourceColNum: '',
-            targetColNum: '',
+            sourceColNum: -1,
+            targetColNum: -1,
             info: '',
 
             value: 1,
@@ -71,8 +63,8 @@ class App extends React.Component {
             isSourceHeaderMenuOpen: false,
             isTargetHeaderMenuOpen: false,
             dpValue: 0,
-            //sourceHeaderText: "请选择原文件名列",
-            //targetHeaderText: "请选择目标文件名列",
+            isRenameErrorDialog: false,
+            renameErrorMessage: '',
         }
     }
 
@@ -107,7 +99,7 @@ class App extends React.Component {
         ipcRenderer.on('col-header-reply', (event, colHeader) => {
             console.log('colHeader');
             console.log(colHeader);
-            if(colHeader == null){
+            if (colHeader == null) {
                 colHeader = [];
             }
             this.setState({colHeader: colHeader});
@@ -118,6 +110,15 @@ class App extends React.Component {
                 this.setState({info: this.state.info});
             }
         );
+
+        ipcRenderer.on('rename-error-reply', (event, errorMessageArray) => {
+                //this.state.info += info + '\n';
+                //this.setState({info: this.state.info});
+            this.setState({
+                isRenameErrorDialog: true,
+                renameErrorMessage: errorMessageArray.toString()
+            });
+        });
     }
 
     btnTargetDirClicked() {
@@ -257,6 +258,11 @@ class App extends React.Component {
     }
 
     render() {
+
+        const renameErrorActions = [
+            <FlatButton label="知道了" primary={true}
+                        onTouchTap={()=>{this.setState({isRenameErrorDialog: false})}} />
+        ];
 
         return (
             <div>
@@ -403,7 +409,15 @@ class App extends React.Component {
                 </MuiThemeProvider>
 
                 <MuiThemeProvider muiTheme={muiTheme}>
-                    <TextField id="txtInfo" value={this.state.info} fullWidth={true} multiLine={true} rows={4} rowsMax={4}/>
+                    <TextField id="txtInfo" value={this.state.info} fullWidth={true} multiLine={true} rows={4}
+                               rowsMax={4}/>
+                </MuiThemeProvider>
+
+                <MuiThemeProvider muiTheme={muiTheme}>
+                    <Dialog title="缺少参数" actions={renameErrorActions}
+                            modal={true} open={this.state.isRenameErrorDialog}>
+                        {this.state.renameErrorMessage}
+                    </Dialog>
                 </MuiThemeProvider>
             </div>
         );

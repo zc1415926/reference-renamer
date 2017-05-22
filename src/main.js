@@ -121,6 +121,31 @@ ipcMain.on('get-col-header', function (event, num) {
 ipcMain.on('start-to-rename', function (event, sourceColNum, targetColNum) {
     //check the 5 items: targetDirPath, sourceData, skipRowCount, sourceColNum, targetColNum
 
+    let errorMessage = [];
+
+    if(!targetDirPath){
+        errorMessage.push(' 目标文件夹没有选择');
+    }
+    if(!sourceData){
+        errorMessage.push(' Excel文件没有选择');
+    }
+    if(!skipRowCount){
+        errorMessage.push(' 列标题所在列有选择');
+    }
+    if(sourceColNum == -1){
+        errorMessage.push(' 原文件名列没有选择');
+    }
+    if(targetColNum == -1){
+        errorMessage.push(' 目标文件名列没有选择');
+    }
+
+    if(errorMessage.length > 0){
+        console.log('errorMessage');
+        console.log(errorMessage);
+        event.sender.send('rename-error-reply', errorMessage);
+
+        return;
+    }
     shelljs.cd(targetDirPath);
 
     for(let rowI=skipRowCount; rowI < sourceData.length; rowI++){
