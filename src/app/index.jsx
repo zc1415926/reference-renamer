@@ -321,7 +321,9 @@ class App extends React.Component {
                             </FloatingActionButton>
 
 
-                            <ToolbarTitle text=""/>
+                        </ToolbarGroup>
+                        <ToolbarGroup>
+                            <ToolbarTitle text={this.state.colHeader.toString()}/>
                         </ToolbarGroup>
                     </Toolbar>
                 </MuiThemeProvider>
