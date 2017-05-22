@@ -403,7 +403,7 @@ class App extends React.Component {
                 </MuiThemeProvider>
 
                 <MuiThemeProvider muiTheme={muiTheme}>
-                    <TextField value={this.state.info} fullWidth={true} multiLine={true} rows={4} rowsMax={4}/>
+                    <TextField id="txtInfo" value={this.state.info} fullWidth={true} multiLine={true} rows={4} rowsMax={4}/>
                 </MuiThemeProvider>
             </div>
         );

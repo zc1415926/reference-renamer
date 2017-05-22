@@ -119,6 +119,7 @@ ipcMain.on('get-col-header', function (event, num) {
 });
 
 ipcMain.on('start-to-rename', function (event, sourceColNum, targetColNum) {
+    //check the 5 items: targetDirPath, sourceData, skipRowCount, sourceColNum, targetColNum
 
     shelljs.cd(targetDirPath);
 
