@@ -265,6 +265,10 @@ class App extends React.Component {
         }
     }
 
+    onBtnCloseAppClicked(){
+        ipcRenderer.send('close-app');
+    }
+
     render() {
 
         const renameErrorActions = [
@@ -277,7 +281,8 @@ class App extends React.Component {
                 <MuiThemeProvider muiTheme={muiTheme}>
                     <AppBar title="参照批量重命名程序" style={styles.titleBarDrag}
                             showMenuIconButton={false}
-                            iconElementRight={<IconButton style={styles.noDrag}><NavigationClose /></IconButton>}/>
+                            iconElementRight={<IconButton style={styles.noDrag}
+                                                          onTouchTap={()=>{this.onBtnCloseAppClicked()}}><NavigationClose /></IconButton>}/>
                 </MuiThemeProvider>
 
                 <MuiThemeProvider muiTheme={muiTheme}>

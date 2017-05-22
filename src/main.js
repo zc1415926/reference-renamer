@@ -150,7 +150,7 @@ ipcMain.on('start-to-rename', function (event, sourceColNum, targetColNum) {
         return;
     }
     shelljs.cd(targetDirPath);
-
+ 
     for(let rowI=skipRowCount; rowI < sourceData.length; rowI++){
 
         let currentRow = sourceData[rowI];
@@ -164,9 +164,12 @@ ipcMain.on('start-to-rename', function (event, sourceColNum, targetColNum) {
 
             event.sender.send('start-to-rename-reply',
                 '“'+oldFileName+'” 重命名为 “'+newFileName+'”');
-
         }else if(matchedFiles.length == 0){
             event.sender.send('start-to-rename-reply', '没有找到文件名包含“' + sourceData[rowI][sourceColNum] + '”的文件');
         }
     }
+});
+
+ipcMain.on('close-app', function () {
+    win.close();
 });
