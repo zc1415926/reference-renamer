@@ -346,7 +346,8 @@ class App extends React.Component {
                                 }}
                             >
                                 <Menu onChange={(e, key) => {
-                                    this.sourceHeaderMenuChanged(e, key)
+                                    this.sourceHeaderMenuChanged(e, key);
+                                    this.handleSourceHeaderMenu(e, false);
                                 }}>
                                     {this.state.colHeader.map(this.createSourceRow, this)}
                                 </Menu>
@@ -376,7 +377,8 @@ class App extends React.Component {
                                 }}
                             >
                                 <Menu onChange={(e, key) => {
-                                    this.targetHeaderMenuChanged(e, key)
+                                    this.targetHeaderMenuChanged(e, key);
+                                    this.handleTargetHeaderMenu(e, false);
                                 }}>
                                     {this.state.colHeader.map(this.createTargetRow, this)}
                                 </Menu>
