@@ -18,6 +18,7 @@ const client = require('electron-connect').client;
 let win;
 let targetDirPath;
 let sourceData;
+let skipRowCount;
 
 function createWindow() {
     // Create the browser window.
@@ -106,7 +107,6 @@ ipcMain.on('open-excel-path', function (event) {
                 console.log('excel file: ' + filePath);
 
                 sourceData = xlsx.parse(fs.readFileSync(filePath.toString()))[0]['data'];
-
                 event.sender.send('excel-path-reply', filePath, sourceData.length);
             }
     });
@@ -114,7 +114,7 @@ ipcMain.on('open-excel-path', function (event) {
 
 ipcMain.on('get-col-header', function (event, num) {
     console.log(sourceData[num-1]);
-    //'col-header-reply'
+    skipRowCount = num;
     event.sender.send('col-header-reply', sourceData[num-1]);
 });
 
@@ -122,15 +122,14 @@ ipcMain.on('start-to-rename', function (event, sourceColNum, targetColNum) {
 
     shelljs.cd(targetDirPath);
 
-    sourceData.forEach((item)=>{
-        //console.log(item[sourceColNum]);
-        var matchedFiles = shelljs.ls('*' + item[sourceColNum] + '.*');
+    for(let rowI=skipRowCount; rowI < sourceData.length; rowI++){
+
+        let currentRow = sourceData[rowI];
+        let matchedFiles = shelljs.ls('*' + currentRow[sourceColNum] + '.*');
 
         if(matchedFiles.length == 1){
-            //
             let oldFileName = matchedFiles.toString();
-            let newFileName = oldFileName.replace(item[sourceColNum], item[targetColNum]);
-
+            let newFileName = oldFileName.replace(currentRow[sourceColNum], currentRow[targetColNum]);
 
             shelljs.mv(oldFileName, newFileName);
 
@@ -138,11 +137,7 @@ ipcMain.on('start-to-rename', function (event, sourceColNum, targetColNum) {
                 '“'+oldFileName+'” 重命名为 “'+newFileName+'”');
 
         }else if(matchedFiles.length == 0){
-            event.sender.send('start-to-rename-reply', '没有找到文件名包含“' + item[sourceColNum] + '”的文件');
+            event.sender.send('start-to-rename-reply', '没有找到文件名包含“' + sourceData[rowI][sourceColNum] + '”的文件');
         }
-
-    });
-    //shelljs.ls('*');
-    //'col-header-reply'
-    //event.sender.send('col-header-reply', sourceData[num-1]);
+    }
 });
