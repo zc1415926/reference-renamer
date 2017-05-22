@@ -6,7 +6,13 @@ let gulpWebpack = require('gulp-webpack');
 let gulpUtil = require('gulp-util');
 let useref = require('gulp-useref');
 let webpack = require('webpack');
-let electronConnect = require('electron-connect').server.create({path:'./build', logLevel: 0});
+
+var webpackStream = require('webpack-stream');
+let babel = require("gulp-babel");
+
+let es2015 = require("babel-preset-es2015");
+let react = require("babel-preset-react");
+let electronConnect = require('electron-connect').server.create({path: './build', logLevel: 0});
 
 let config = {
     path: {
@@ -17,7 +23,7 @@ let config = {
     }
 };
 
-gulp.task('copy-files', function(){
+gulp.task('copy-files', function () {
     gulp.src('package.json')
         .pipe(gulp.dest('build'));
 
@@ -28,7 +34,7 @@ gulp.task('copy-files', function(){
         .pipe(gulp.dest('build/app'));
 });
 
-gulp.task('copy-files-useref', function(){
+gulp.task('copy-files-useref', function () {
     gulp.src('package.json')
         .pipe(gulp.dest('build'));
 
@@ -41,29 +47,15 @@ gulp.task('copy-files-useref', function(){
         .pipe(gulp.dest('build/app'));
 });
 
-gulp.task('build-react', function(){
+gulp.task('build-react', function () {
     gulp.src('src/app/**/*.jsx')
-        .pipe(gulpWebpack(
-            {
-                output: {
-                    filename: 'bundle.js',
-                },
-                module: {
-                    loaders: [
-                        {
-                            loader: 'babel-loader',
-                            query: {presets:['react', 'es2015']}
-                        }]
-                },
-                /*plugins: [
-                    new webpack.optimize.UglifyJsPlugin({
-                        compress: {
-                            warnings: false
-                        }
-                    }),
-                ]*/
-            }
-        ))
+        .pipe(babel({presets: [es2015, react]}))
+        .pipe(gulp.dest('temp/app'))
+        .pipe(webpackStream({
+            output:{filename: 'bundle.js'},
+            stats:{colors:true},
+        }, webpack))
+
         .pipe(gulp.dest('build/app'));
 });
 
@@ -72,7 +64,7 @@ gulp.task('copyHtml', function () {
         .pipe(gulp.dest(config.path.htmlDestDir));
 });
 
-gulp.task('watchWithConnect', function(){
+gulp.task('watchWithConnect', function () {
     electronConnect.start();
 
     gulp.watch('src/app' + '**/*.jsx', ['build-react']);
