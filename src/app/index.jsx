@@ -29,24 +29,52 @@ const muiTheme = getMuiTheme({
     palette: {
         accent1Color: cyan500,
     },
+
+    fontFamily: 'source-Sans-light',
+    toolbar: {
+        height: 68
+    },
 });
 const styles = {
     container: {
         textAlign: 'center',
         paddingTop: 200,
     },
+    appBar:{
+        titleStyle:{
+            fontFamily: 'source-Serif-bold',
+            fontSize: 28,
+        }
+    },
     btnHeaderRowNum: {
         marginLeft: 20,
         marginRight: 20,
-    },
-    textHeaderRowNum: {
-        width: 120,
     },
     titleBarDrag: {
         '-webkit-app-region': 'drag',
     },
     noDrag: {
         '-webkit-app-region': 'no-drag',
+    },
+    btn: {
+         width: 220,
+         height: 40,
+    },
+    btnLabel: {
+        fontSize: 20,
+    },
+    txtColHeaderRowNum: {
+        width: 120,
+        disabled: true,
+        floatingLabelStyle: {
+            color: '#717171',
+            fontSize: 18,
+            width: 150,
+        },
+        inputStyle: {
+            fontSize: 20,
+            marginTop: 8,
+        }
     },
 };
 
@@ -114,7 +142,7 @@ class App extends React.Component {
         });
 
         ipcRenderer.on('start-to-rename-reply', (event, info) => {
-                this.state.info += info + '\n';
+                this.state.info += '    '+info + '\n';
                 this.setState({info: this.state.info});
             }
         );
@@ -143,15 +171,12 @@ class App extends React.Component {
     }
 
     createListRow(colHeaderItem) {
-        //let order = 0;
         return (
             <li>{colHeaderItem}</li>
         );
     }
 
     btnRenameClicked() {
-        //检查数据输完没有
-        //
         ipcRenderer.send('start-to-rename', this.state.sourceColNum, this.state.targetColNum);
     }
 
@@ -277,9 +302,9 @@ class App extends React.Component {
         ];
 
         return (
-            <div>
+            <div className="mainBody">
                 <MuiThemeProvider muiTheme={muiTheme}>
-                    <AppBar title="参照批量重命名程序" style={styles.titleBarDrag}
+                    <AppBar title="参照批量重命名程序" titleStyle={styles.appBar.titleStyle} style={styles.titleBarDrag}
                             showMenuIconButton={false}
                             iconElementRight={<IconButton style={styles.noDrag}
                                                           onTouchTap={()=>{this.onBtnCloseAppClicked()}}><NavigationClose /></IconButton>}/>
@@ -288,7 +313,7 @@ class App extends React.Component {
                 <MuiThemeProvider muiTheme={muiTheme}>
                     <Toolbar>
                         <ToolbarGroup>
-                            <RaisedButton label="选择目标文件夹" onClick={() => {
+                            <RaisedButton style={styles.btn} labelStyle={styles.btnLabel} label="选择目标文件夹" onClick={() => {
                                 this.btnTargetDirClicked()
                             }}/>
                         </ToolbarGroup>
@@ -303,7 +328,7 @@ class App extends React.Component {
                 <MuiThemeProvider muiTheme={muiTheme}>
                     <Toolbar>
                         <ToolbarGroup>
-                            <RaisedButton label="选择Excel文件" onClick={() => {
+                            <RaisedButton style={styles.btn} labelStyle={styles.btnLabel} label="选择Excel文件" onClick={() => {
                                 this.btnExcelPathClicked()
                             }}/>
                         </ToolbarGroup>
@@ -312,10 +337,10 @@ class App extends React.Component {
                         </ToolbarGroup>
                     </Toolbar>
                 </MuiThemeProvider>
-                <MuiThemeProvider muiTheme={getMuiTheme()}>
+                <MuiThemeProvider muiTheme={muiTheme}>
                     <Divider />
                 </MuiThemeProvider>
-                <MuiThemeProvider muiTheme={getMuiTheme()}>
+                <MuiThemeProvider muiTheme={muiTheme}>
                     <Toolbar>
                         <ToolbarGroup>
 
@@ -328,7 +353,8 @@ class App extends React.Component {
                             </FloatingActionButton>
 
                             <TextField value={this.state.colHeaderRowNum} floatingLabelText="列标题在第几行"
-                                       style={styles.textHeaderRowNum}
+                                       style={styles.txtColHeaderRowNum} floatingLabelStyle={styles.txtColHeaderRowNum.floatingLabelStyle}
+                                       inputStyle={styles.txtColHeaderRowNum.inputStyle}
                                        onChange={(e) => {
                                            this.inputColHeaderRowNumChanged(e)
                                        }}
@@ -352,7 +378,7 @@ class App extends React.Component {
                 <MuiThemeProvider muiTheme={muiTheme}>
                     <Toolbar>
                         <ToolbarGroup>
-                            <RaisedButton
+                            <RaisedButton style={styles.btn} labelStyle={styles.btnLabel}
                                 onTouchTap={(e) => {
                                     this.handleSourceHeaderMenu(e, true)
                                 }}
@@ -383,7 +409,7 @@ class App extends React.Component {
                 <MuiThemeProvider muiTheme={muiTheme}>
                     <Toolbar>
                         <ToolbarGroup>
-                            <RaisedButton
+                            <RaisedButton style={styles.btn} labelStyle={styles.btnLabel}
                                 onTouchTap={(e) => {
                                     this.handleTargetHeaderMenu(e, true)
                                 }}
@@ -414,7 +440,7 @@ class App extends React.Component {
                 <MuiThemeProvider muiTheme={muiTheme}>
                     <Toolbar>
                         <ToolbarGroup>
-                            <RaisedButton label="开始" onClick={() => {
+                            <RaisedButton style={styles.btn} labelStyle={styles.btnLabel} label="开始" onClick={() => {
                                 this.btnRenameClicked()
                             }}/>
                         </ToolbarGroup>
@@ -425,7 +451,8 @@ class App extends React.Component {
                 </MuiThemeProvider>
 
                 <MuiThemeProvider muiTheme={muiTheme}>
-                    <TextField id="txtInfo" value={this.state.info} fullWidth={true} multiLine={true} rows={4}
+                    <TextField id="txtInfo"
+                               value={this.state.info} fullWidth={true} multiLine={true} rows={4}
                                rowsMax={4}/>
                 </MuiThemeProvider>
 
