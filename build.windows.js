@@ -16,6 +16,7 @@ let manifest;
 let appDir;
 
 function init() {
+    gulpUtil.log('Don\'t forget to run ' + gulpUtil.colors.red('gulp build-production') + ' to refresh the files.');
     projectDir = jetpack;
     appDir = projectDir.dir('./build');
     manifest = appDir.read('./package.json', 'json');

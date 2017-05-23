@@ -18,34 +18,14 @@ let config = {
     path: {
         htmlSrcPath: 'src/app/index.html',
         htmlDestDir: 'build/app/',
+        cssSrcPath: 'src/app/css/main.css',
+        cssDestDir: 'build/app/css/',
+        fontSrcPath: 'resources/font/*',
+        fontDestDir: 'build/app/font/',
         jsxSrcDir: 'src/app/',
         jsxDestDir: 'build/app/'
     }
 };
-
-gulp.task('copy-files', function () {
-    gulp.src('package.json')
-        .pipe(gulp.dest('build'));
-
-    gulp.src('src/main.js')
-        .pipe(gulp.dest('build'));
-
-    gulp.src('src/app/index.html')
-        .pipe(gulp.dest('build/app'));
-});
-
-gulp.task('copy-files-useref', function () {
-    gulp.src('package.json')
-        .pipe(gulp.dest('build'));
-
-    gulp.src('src/main.js')
-        .pipe(useref())
-        .pipe(gulp.dest('build'));
-
-    gulp.src('src/app/index.html')
-        .pipe(useref())
-        .pipe(gulp.dest('build/app'));
-});
 
 gulp.task('build-react', function () {
     gulp.src('src/app/**/*.jsx')
@@ -59,19 +39,72 @@ gulp.task('build-react', function () {
         .pipe(gulp.dest('build/app'));
 });
 
-gulp.task('copyHtml', function () {
+gulp.task('build-react-production', function () {
+    gulp.src('src/app/**/*.jsx')
+        .pipe(babel({presets: [es2015, react]}))
+        .pipe(gulp.dest('temp/app'))
+        .pipe(webpackStream({
+            output:{filename: 'bundle.js'},
+            stats:{colors:true},
+            plugins: [
+                new webpack.optimize.UglifyJsPlugin({
+                    output: {
+                        comments: false,  // remove all comments
+                    },
+                    compress: {
+                        warnings: false
+                    },
+            })]
+        }, webpack))
+
+        .pipe(gulp.dest('build/app'));
+});
+
+gulp.task('copy-main-js', function () {
+    gulp.src('src/main.js')
+        .pipe(gulp.dest('build'));
+});
+gulp.task('copy-index-html', function () {
     gulp.src(config.path.htmlSrcPath)
         .pipe(gulp.dest(config.path.htmlDestDir));
 });
+
+gulp.task('copy-app-files-useref', function () {
+    //main.js
+    gulp.src('src/main.js')
+        .pipe(useref())
+        .pipe(gulp.dest('build'));
+    //index.html
+    gulp.src('src/app/index.html')
+        .pipe(useref())
+        .pipe(gulp.dest('build/app'));
+});
+
+gulp.task('copy-static-files', function () {
+    //package.json
+    gulp.src('package.json')
+        .pipe(gulp.dest('build'));
+    //fonts
+    gulp.src(config.path.fontSrcPath)
+        .pipe(gulp.dest(config.path.fontDestDir))
+    //css
+    gulp.src(config.path.cssSrcPath)
+        .pipe(gulp.dest(config.path.cssDestDir));
+});
+
+gulp.task('copy-files', ['copy-static-files', 'copy-main-js', 'copy-index-html']);
+
+gulp.task('copy-files-useref', ['copy-static-files', 'copy-app-files-useref']);
 
 gulp.task('watchWithConnect', function () {
     electronConnect.start();
 
     gulp.watch('src/app' + '**/*.jsx', ['build-react']);
-    gulp.watch('src/app/index.html', ['copyHtml']);
-    gulp.watch('src/main.js', function () {
-        gulp.src('src/main.js')
-            .pipe(gulp.dest('build'));
+    gulp.watch('src/app/index.html', ['copy-index-html']);
+    gulp.watch('src/main.js', ['copy-main-js']);
+    gulp.watch('src/app/css/main.css', function () {
+        gulp.src(config.path.cssSrcPath)
+            .pipe(gulp.dest(config.path.cssDestDir));
     });
 
     gulp.watch('build/app' + '/**/*', function () {
@@ -94,6 +127,6 @@ gulp.task('release', function () {
 });
 
 gulp.task('build', ['copy-files', 'build-react']);
-gulp.task('build-useref', ['copy-files-useref', 'build-react']);
+gulp.task('build-production', ['copy-files-useref', 'build-react-production']);
 gulp.task('run', ['watchWithConnect']);
 gulp.task('default', ['copy-files', 'build-react', 'watchWithConnect']);

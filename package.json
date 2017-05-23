@@ -1,8 +1,8 @@
 {
   "name": "reference-renamer",
-  "releaseName": "Reference Renamer",
+  "releaseName": "ReferenceRenamer",
   "version": "1.0.0",
-  "description": "a template project for electron and react with es6",
+  "description": "参照批量重命名程序",
   "main": "main.js",
   "repository": {
     "type": "git",
