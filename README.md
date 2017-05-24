@@ -1,6 +1,12 @@
 # 参照重命名 ReferenceRenamer 
 参照Excel表格对文件进行批量重命名。
 
+## 软件截图
+
+![screenshot01](https://raw.githubusercontent.com/zc1415926/reference-renamer/master/docs/screenshot01.jpg)  
+
+## 界面说明
+
 ### 选择目标文件夹
 选择被重命名的文件所在的文件夹。
 
