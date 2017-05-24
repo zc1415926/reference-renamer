@@ -78,12 +78,12 @@ function updateResources() {
     var deferred = Q.defer();
 
     // Copy your icon from resource folder into build folder.
-    projectDir.copy('resources/zc.ico', releaseDir.path('icon.ico'));
+    projectDir.copy('resources/icon/Rr.ico', releaseDir.path('Rr.ico'));
 
     // Replace Electron icon for your own.
     let rcedit = require('rcedit');
     rcedit(releaseDir.path('electron.exe'), {
-        'icon': releaseDir.path('icon.ico'),
+        'icon': releaseDir.path('Rr.ico'),
         'version-string': {
             'ProductName': manifest.releaseName,
             'FileDescription': manifest.description,
