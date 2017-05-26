@@ -99,7 +99,7 @@ gulp.task('copy-files-useref', ['copy-static-files', 'copy-app-files-useref']);
 gulp.task('watchWithConnect', function () {
     electronConnect.start();
 
-    gulp.watch('src/app' + '**/*.jsx', ['build-react']);
+    gulp.watch('src/app/' + '**/*.jsx', ['build-react']);
     gulp.watch('src/app/index.html', ['copy-index-html']);
     gulp.watch('src/main.js', ['copy-main-js']);
     gulp.watch('src/app/css/main.css', function () {
@@ -119,8 +119,7 @@ gulp.task('watchWithConnect', function () {
     //Cann't stop watch. Gulp is just running as a never ending process
 });
 
-// gulp.watch cann't watch new files,
-// using Ctrl + R for reload manually.
+
 var release = require('./build.windows');
 gulp.task('release', function () {
     return release.build();
